@@ -1,0 +1,60 @@
+{
+  "name": "agentario",
+  "version": "0.1.0",
+  "description": "AI agent library — browse on the web or pull prompts from the terminal",
+  "private": false,
+  "type": "module",
+  "bin": {
+    "agentario": "./bin/agentario.mjs"
+  },
+  "files": [
+    "bin",
+    "data/catalog.json",
+    "data/agents.ts",
+    "app",
+    "components",
+    "lib",
+    "public",
+    "proxy.ts",
+    "next.config.ts",
+    "postcss.config.mjs",
+    "tsconfig.json",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "npm run export:catalog && next build",
+    "start": "next start",
+    "lint": "eslint",
+    "export:catalog": "tsx scripts/export-catalog.ts",
+    "agentario": "node ./bin/agentario.mjs",
+    "menu": "node ./bin/agentario.mjs",
+    "prepack": "npm run export:catalog"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "prompts",
+    "cli",
+    "llm"
+  ],
+  "dependencies": {
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.0",
+    "typescript": "^5"
+  }
+}
