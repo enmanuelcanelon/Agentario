@@ -1,19 +1,21 @@
 # Agentario
 
-Librería de agentes de IA (web + terminal).
+AI agent library (web + terminal).
 
-## Abrir el menú de agentes
+## Open the agent menu
 
-En la carpeta del proyecto:
+From the project folder:
 
 ```bash
 npm install
 npx agentario
 ```
 
-Eso abre el menú. Eliges por categoría o buscas, y al escoger un agente se imprime el texto para la IA.
+That opens the menu. Browse by **category** or **search** by name, pick an agent, and its prompt is printed for the AI to use.
 
-> Si escribes solo `agentario` y dice *command not found*, usa `npx agentario`.
+Default language: **English**. Add `es` for Spanish.
+
+> If `agentario` says *command not found*, use `npx agentario`.
 
 ## Web
 
@@ -23,7 +25,7 @@ npm run dev
 
 http://localhost:3000
 
-## Desde GitHub
+## From GitHub
 
 ```bash
 git clone https://github.com/enmanuelcanelon/Agentario.git

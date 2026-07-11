@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const CATALOG_PATH = join(ROOT, "data", "catalog.json");
+const DEFAULT_LANG = "en";
 
 function loadCatalog() {
   return JSON.parse(readFileSync(CATALOG_PATH, "utf8"));
@@ -64,25 +65,49 @@ function searchAgents(agents, query) {
   });
 }
 
-function printAgentForAi(agent) {
-  const block = [
-    "",
-    "════════════════════════════════════════",
-    `AGENTE SELECCIONADO: ${agent.name}`,
-    `slug: ${agent.slug} · tipo: ${agent.type}`,
-    "════════════════════════════════════════",
-    "",
-    "INSTRUCCIÓN PARA LA IA:",
-    "Adopta este agente ahora. Guarda estas instrucciones en tu contexto",
-    "de trabajo y úsalas en lo que sigue (no hace falta que las repitas).",
-    "",
-    "— INICIO DEL AGENTE —",
-    agent.content,
-    "— FIN DEL AGENTE —",
-    "",
-  ].join("\n");
+function resolveLang(args) {
+  if (args.includes("es")) return "es";
+  if (args.includes("en")) return "en";
+  return DEFAULT_LANG;
+}
 
-  process.stdout.write(`${block}\n`);
+function printAgentForAi(agent, lang) {
+  const block =
+    lang === "es"
+      ? [
+          "",
+          "════════════════════════════════════════",
+          `AGENTE SELECCIONADO: ${agent.name}`,
+          `slug: ${agent.slug} · tipo: ${agent.type}`,
+          "════════════════════════════════════════",
+          "",
+          "INSTRUCCIÓN PARA LA IA:",
+          "Adopta este agente ahora. Guarda estas instrucciones en tu contexto",
+          "de trabajo y úsalas en lo que sigue (no hace falta que las repitas).",
+          "",
+          "— INICIO DEL AGENTE —",
+          agent.content,
+          "— FIN DEL AGENTE —",
+          "",
+        ]
+      : [
+          "",
+          "════════════════════════════════════════",
+          `SELECTED AGENT: ${agent.name}`,
+          `slug: ${agent.slug} · type: ${agent.type}`,
+          "════════════════════════════════════════",
+          "",
+          "INSTRUCTION FOR THE AI:",
+          "Adopt this agent now. Keep these instructions in your working context",
+          "and use them going forward (no need to repeat them back).",
+          "",
+          "— AGENT START —",
+          agent.content,
+          "— AGENT END —",
+          "",
+        ];
+
+  process.stdout.write(`${block.join("\n")}\n`);
 }
 
 async function ask(rl, question) {
@@ -95,11 +120,11 @@ async function pickFromList(rl, title, items, labelFn) {
   items.forEach((item, i) => {
     console.log(`  ${i + 1}. ${labelFn(item)}`);
   });
-  console.log("  0. Volver");
-  const raw = await ask(rl, "\nNúmero: ");
+  console.log("  0. Back");
+  const raw = await ask(rl, "\nNumber: ");
   const n = Number(raw);
   if (!Number.isInteger(n) || n < 0 || n > items.length) {
-    console.log("Opción no válida.");
+    console.log("Invalid option.");
     return null;
   }
   if (n === 0) return null;
@@ -108,25 +133,25 @@ async function pickFromList(rl, title, items, labelFn) {
 
 async function chooseAgent(rl, agents) {
   if (agents.length === 0) {
-    console.log("\nNo hay agentes aquí.");
+    console.log("\nNo agents here.");
     return null;
   }
   return pickFromList(
     rl,
-    "Elige un agente:",
+    "Pick an agent:",
     agents,
     (a) => `${a.name}  (${a.type}) — ${a.summary}`,
   );
 }
 
-async function afterSelect(rl, agent) {
-  printAgentForAi(agent);
+async function afterSelect(rl, agent, lang) {
+  printAgentForAi(agent, lang);
 
-  console.log("¿Qué más quieres hacer?");
-  console.log("  1. Guardar este agente en un archivo .md");
-  console.log("  2. Volver al menú");
-  console.log("  0. Salir");
-  const choice = await ask(rl, "\nNúmero: ");
+  console.log("What next?");
+  console.log("  1. Save this agent to a .md file");
+  console.log("  2. Back to menu");
+  console.log("  0. Exit");
+  const choice = await ask(rl, "\nNumber: ");
 
   if (choice === "1") {
     const out = resolve(process.cwd(), `${agent.slug}.md`);
@@ -136,7 +161,7 @@ async function afterSelect(rl, agent) {
       `# ${agent.name}\n\n${agent.summary}\n\n${agent.content}\n`,
       "utf8",
     );
-    console.log(`\nGuardado en: ${out}`);
+    console.log(`\nSaved to: ${out}`);
     return "menu";
   }
   if (choice === "0") return "exit";
@@ -147,7 +172,7 @@ async function menuByCategory(rl, catalog, lang) {
   const cats = categoriesOf(catalog, lang);
   const cat = await pickFromList(
     rl,
-    "Categorías:",
+    "Categories:",
     cats,
     (c) => `${c.label} (${c.agents.length})`,
   );
@@ -155,26 +180,26 @@ async function menuByCategory(rl, catalog, lang) {
 
   const agent = await chooseAgent(rl, cat.agents);
   if (!agent) return "menu";
-  return afterSelect(rl, agent);
+  return afterSelect(rl, agent, lang);
 }
 
 async function menuSearch(rl, catalog, lang) {
-  const query = await ask(rl, "\nEscribe nombre o palabra clave: ");
+  const query = await ask(rl, "\nType a name or keyword: ");
   if (!query) return "menu";
   const results = searchAgents(allLocalized(catalog, lang), query);
-  console.log(`\nEncontré ${results.length} agente(s).`);
+  console.log(`\nFound ${results.length} agent(s).`);
   const agent = await chooseAgent(rl, results);
   if (!agent) return "menu";
-  return afterSelect(rl, agent);
+  return afterSelect(rl, agent, lang);
 }
 
 async function menuLang(rl, current) {
-  console.log("\nIdioma del catálogo:");
-  console.log("  1. Español");
-  console.log("  2. English");
-  const choice = await ask(rl, "\nNúmero: ");
-  if (choice === "2") return "en";
-  if (choice === "1") return "es";
+  console.log("\nCatalog language:");
+  console.log("  1. English");
+  console.log("  2. Español");
+  const choice = await ask(rl, "\nNumber: ");
+  if (choice === "1") return "en";
+  if (choice === "2") return "es";
   return current;
 }
 
@@ -183,23 +208,23 @@ async function runMenu(catalog, startLang) {
   let lang = startLang;
   let running = true;
 
-  console.log("\nAgentario — librería de agentes de IA");
-  console.log("Elige un agente y se lo paso a la IA en texto claro.\n");
+  console.log("\nAgentario — AI agent library");
+  console.log("Pick an agent and I’ll hand its text to the AI.\n");
 
   try {
     while (running) {
-      console.log("──────── Menú ────────");
-      console.log(`Idioma: ${lang === "es" ? "Español" : "English"}`);
-      console.log("  1. Ver por categoría");
-      console.log("  2. Buscar por nombre o palabra");
-      console.log("  3. Ver todos");
-      console.log("  4. Cambiar idioma");
-      console.log("  0. Salir");
+      console.log("──────── Menu ────────");
+      console.log(`Language: ${lang === "es" ? "Español" : "English"}`);
+      console.log("  1. Browse by category");
+      console.log("  2. Search by name or keyword");
+      console.log("  3. Show all");
+      console.log("  4. Change language");
+      console.log("  0. Exit");
 
-      const choice = await ask(rl, "\nNúmero: ");
+      const choice = await ask(rl, "\nNumber: ");
 
       if (choice === "0") {
-        console.log("Listo.");
+        console.log("Done.");
         break;
       }
       if (choice === "4") {
@@ -214,14 +239,14 @@ async function runMenu(catalog, startLang) {
         next = await menuSearch(rl, catalog, lang);
       } else if (choice === "3") {
         const agent = await chooseAgent(rl, allLocalized(catalog, lang));
-        if (agent) next = await afterSelect(rl, agent);
+        if (agent) next = await afterSelect(rl, agent, lang);
       } else {
-        console.log("Opción no válida.");
+        console.log("Invalid option.");
         continue;
       }
 
       if (next === "exit") {
-        console.log("Listo.");
+        console.log("Done.");
         running = false;
       }
     }
@@ -232,22 +257,24 @@ async function runMenu(catalog, startLang) {
 
 function printHelp() {
   console.log(`
-Agentario — menú de agentes de IA
+Agentario — AI agent menu
 
-Cómo abrirlo (desde la carpeta del proyecto):
+Open it (from the project folder):
 
   npx agentario
 
-Eso abre el menú. Eliges categoría o buscas, y al escoger
-un agente se imprime el texto para la IA.
+That opens the menu. Browse by category or search, pick an agent,
+and its prompt is printed for the AI to use.
 
-Si escribes solo "agentario" y sale "command not found",
-usa npx agentario (o: npm run agentario).
+Default language: English
+For Spanish agents/UI, add:  es
 
-Atajos:
-  npx agentario traer <slug>
-  npx agentario guardar <slug>
-  npx agentario ayuda
+If "agentario" says command not found, use npx agentario.
+
+Shortcuts:
+  npx agentario get <slug>
+  npx agentario save <slug>
+  npx agentario help
 `.trim());
 }
 
@@ -258,8 +285,8 @@ function main() {
   try {
     catalog = loadCatalog();
   } catch {
-    console.error("No encuentro data/catalog.json.");
-    console.error("En la carpeta del proyecto ejecuta:");
+    console.error("Could not find data/catalog.json.");
+    console.error("In the project folder run:");
     console.error("  npm install");
     console.error("  npm run export:catalog");
     console.error("  npx agentario");
@@ -267,31 +294,34 @@ function main() {
     return;
   }
 
-  if (args[0] === "ayuda" || args[0] === "help" || args[0] === "-h") {
+  if (
+    args[0] === "ayuda" ||
+    args[0] === "help" ||
+    args[0] === "-h"
+  ) {
     printHelp();
     return;
   }
 
-  // Atajos no interactivos (para scripts / pipes)
   if (args[0] === "traer" || args[0] === "get") {
     const slug = args[1];
-    const lang = args.includes("en") ? "en" : "es";
+    const lang = resolveLang(args);
     const raw = catalog.agents.find((a) => a.slug === slug);
     if (!raw) {
-      console.error(`No existe: ${slug}`);
+      console.error(`Not found: ${slug}`);
       process.exitCode = 1;
       return;
     }
-    printAgentForAi(localize(catalog, raw, lang));
+    printAgentForAi(localize(catalog, raw, lang), lang);
     return;
   }
 
   if (args[0] === "guardar" || args[0] === "save") {
     const slug = args[1];
-    const lang = args.includes("en") ? "en" : "es";
+    const lang = resolveLang(args);
     const raw = catalog.agents.find((a) => a.slug === slug);
     if (!raw) {
-      console.error(`No existe: ${slug}`);
+      console.error(`Not found: ${slug}`);
       process.exitCode = 1;
       return;
     }
@@ -303,14 +333,13 @@ function main() {
       `# ${agent.name}\n\n${agent.summary}\n\n${agent.content}\n`,
       "utf8",
     );
-    console.log(`Guardado en: ${out}`);
+    console.log(`Saved to: ${out}`);
     return;
   }
 
-  // Menú interactivo: necesita una terminal real
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    console.error("El menú necesita una terminal interactiva.");
-    console.error("Abre tu terminal en la carpeta del proyecto y ejecuta:");
+    console.error("The menu needs an interactive terminal.");
+    console.error("Open your terminal in the project folder and run:");
     console.error("  npx agentario");
     console.error("");
     printHelp();
@@ -318,8 +347,7 @@ function main() {
     return;
   }
 
-  const lang = args.includes("en") ? "en" : "es";
-  return runMenu(catalog, lang);
+  return runMenu(catalog, resolveLang(args));
 }
 
 main();
