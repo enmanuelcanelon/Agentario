@@ -186,20 +186,27 @@ Stack: Next.js, TypeScript, Tailwind. CLI is plain Node — no extra runtime bey
 
 ## Deploy (Cloudflare)
 
-This app is set up for Workers via OpenNext.
+OpenNext is configured for Workers.
 
-In the Cloudflare dashboard:
+**Recommended Workers Builds settings**
 
-- **Build command:** `npx opennextjs-cloudflare build`
-- **Deploy command:** `npx wrangler deploy`
+| Setting | Value |
+|---------|--------|
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
 
-Or from your machine (with Cloudflare auth):
+On Cloudflare CI, `npm run build` automatically runs the OpenNext bundle (so `.open-next` exists before deploy).
+
+Locally:
 
 ```bash
 npm run deploy
+# or
+npm run build:cf
+npx wrangler deploy
 ```
 
-> Cloudflare does **not** support Next.js 16 `proxy.ts` (Node middleware). This project uses Edge `middleware.ts` for locale redirects.
+> Do **not** use Next.js 16 `proxy.ts` here — Cloudflare needs Edge `middleware.ts` (already in the repo).
 
 ---
 

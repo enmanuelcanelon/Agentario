@@ -26,15 +26,17 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "build": "npm run export:catalog && next build",
+    "build": "node ./scripts/build.mjs",
+    "build:next": "npm run export:catalog && next build",
+    "build:cf": "OPEN_NEXT_BUILDING=1 opennextjs-cloudflare build",
     "start": "next start",
     "lint": "eslint",
     "export:catalog": "tsx scripts/export-catalog.ts",
     "agentario": "node ./bin/agentario.mjs",
     "menu": "node ./bin/agentario.mjs",
     "prepack": "npm run export:catalog",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "preview": "npm run build:cf && opennextjs-cloudflare preview",
+    "deploy": "npm run build:cf && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "engines": {
