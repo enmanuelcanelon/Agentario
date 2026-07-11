@@ -15,11 +15,14 @@
     "components",
     "lib",
     "public",
-    "proxy.ts",
+    "middleware.ts",
+    "wrangler.jsonc",
+    "open-next.config.ts",
     "next.config.ts",
     "postcss.config.mjs",
     "tsconfig.json",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "next dev",
@@ -29,7 +32,10 @@
     "export:catalog": "tsx scripts/export-catalog.ts",
     "agentario": "node ./bin/agentario.mjs",
     "menu": "node ./bin/agentario.mjs",
-    "prepack": "npm run export:catalog"
+    "prepack": "npm run export:catalog",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "engines": {
     "node": ">=18"
@@ -52,6 +58,7 @@
   },
   "homepage": "https://github.com/enmanuelcanelon/Agentario#readme",
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -65,6 +72,7 @@
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
     "tsx": "^4.23.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.110.0"
   }
 }

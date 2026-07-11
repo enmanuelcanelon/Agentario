@@ -184,10 +184,22 @@ Stack: Next.js, TypeScript, Tailwind. CLI is plain Node — no extra runtime bey
 
 ---
 
-## Requirements
+## Deploy (Cloudflare)
 
-- Node.js **18+**
-- npm (or compatible)
+This app is set up for Workers via OpenNext.
+
+In the Cloudflare dashboard:
+
+- **Build command:** `npx opennextjs-cloudflare build`
+- **Deploy command:** `npx wrangler deploy`
+
+Or from your machine (with Cloudflare auth):
+
+```bash
+npm run deploy
+```
+
+> Cloudflare does **not** support Next.js 16 `proxy.ts` (Node middleware). This project uses Edge `middleware.ts` for locale redirects.
 
 ---
 

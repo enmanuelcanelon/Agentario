@@ -43,3 +43,9 @@ next-env.d.ts
 # local CLI exports
 *.local.md
 revisor-de-codigo.md
+
+# OpenNext / Cloudflare
+.open-next
+.wrangler
+.dev.vars*
+!.dev.vars.example
