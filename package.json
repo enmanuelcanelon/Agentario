@@ -39,8 +39,18 @@
     "agents",
     "prompts",
     "cli",
-    "llm"
+    "llm",
+    "opensource"
   ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enmanuelcanelon/Agentario.git"
+  },
+  "bugs": {
+    "url": "https://github.com/enmanuelcanelon/Agentario/issues"
+  },
+  "homepage": "https://github.com/enmanuelcanelon/Agentario#readme",
   "dependencies": {
     "next": "16.2.10",
     "react": "19.2.4",

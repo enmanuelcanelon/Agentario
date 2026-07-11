@@ -206,8 +206,9 @@ Keep prompts production-grade: role, inputs, constraints, anti-patterns, and a c
 
 ## License
 
-Private / unpublished license for now — use and fork as you like while the project is early. If you want an explicit OSS license (MIT, etc.), open an issue or say the word.
+[MIT](LICENSE) — free to use, copy, modify, and distribute.
 
 ---
 
 **Agentario** — pick an agent, load it, get to work.
+
